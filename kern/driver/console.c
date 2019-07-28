@@ -72,8 +72,8 @@ serial_putc_sub(int c) {
     outb(COM1 + COM_TX, c);
 #elif defined MACH_FPGA
     //TODO
-    while( (inw(COM1 + 0x04) & 0x01) == 0 );
-    outw(COM1 + 0x00, c & 0xFF);
+    while( (inw(COM1 + 0x08) & 0x08) != 0 );
+    outw(COM1 + 0x04, c & 0xFF);
 #endif
 }
 
@@ -99,7 +99,7 @@ serial_proc_data(void) {
     c = inb(COM1 + COM_RX);
 #elif defined MACH_FPGA
     //TODO
-    if( (inw(COM1 + 0x04) & 0x02) == 0)
+    if( (inw(COM1 + 0x08) & 0x01) == 0)
       return -1;
     c = inw(COM1 + 0x00) & 0xFF;
 #endif

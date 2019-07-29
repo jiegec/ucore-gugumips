@@ -89,15 +89,26 @@ static void interrupt_handler(struct trapframe *tf)
 {
   extern clock_int_handler(void*);
   extern serial_int_handler(void*);
-  int i;
+  int i, pending, handled;
   for(i=0;i<8;i++){
     if(tf->tf_cause & tf->tf_status & (1<<(CAUSEB_IP+i))){
       switch(i){
         case TIMER0_IRQ:
           clock_int_handler(NULL);
           break;
-        case COM1_IRQ:
-          serial_int_handler(NULL);
+        case AXI_INTC_IRQ:
+          pending = inw(AXI_INTC_BASE + 0x4);
+          handled = 0;
+          outw(AXI_INTC_BASE + 0xC, pending);
+          if (pending & (1 << COM1_IRQ)) {
+            handled = 1;
+            serial_int_handler(NULL);
+          }
+
+          if (!handled) {
+            print_trapframe(tf);
+            panic("Unknown interrupt!");
+          }
           break;
         default:
           print_trapframe(tf);

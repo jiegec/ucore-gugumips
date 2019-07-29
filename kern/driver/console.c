@@ -58,11 +58,16 @@ serial_init(void) {
     outb(COM1 + COM_MCR, 0);
     // Enable rcv interrupts
     outb(COM1 + COM_IER, COM_IER_RDI);
-#elif defined MACH_FPGA
-    //TODO
-#endif
-
     pic_enable(COM1_IRQ);
+#elif defined MACH_FPGA
+    // Enable Uartlite interrupt
+    outw(COM1 + 0xC, 0x13);
+    kprintf("uartlite status %x\n", inw(COM1 + 0x8));
+    // AXI INTC
+    outw(AXI_INTC_BASE + 0x08, 1 << COM1_IRQ);
+    outw(AXI_INTC_BASE + 0x1C, 0x3);
+    pic_enable(AXI_INTC_IRQ);
+#endif
 }
 
 
